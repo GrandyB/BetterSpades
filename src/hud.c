@@ -2176,7 +2176,8 @@ static void hud_serverlist_render(mu_Context* ctx, float scalex, float scaley) {
 
 		int a = ctx->text_width(ctx->style->font, "Refresh", 0) * 1.6F;
 		int b = ctx->text_width(ctx->style->font, "Join", 0) * 2.0F;
-		mu_layout_row(ctx, 3, (int[]) {-a - b, -a, -1}, 0);
+		int c = ctx->text_width(ctx->style->font, "Local", 0) * 2.0F;
+		mu_layout_row(ctx, 4, (int[]) {-a - b - c, -a - b, -c, -1}, 0);
 		if(mu_textbox(ctx, serverlist_input, sizeof(serverlist_input)) & MU_RES_SUBMIT)
 			server_c(serverlist_input, NULL);
 		if(mu_button_ex(ctx, "Join", 16, MU_OPT_ALIGNRIGHT))
@@ -2184,6 +2185,10 @@ static void hud_serverlist_render(mu_Context* ctx, float scalex, float scaley) {
 
 		if(mu_button_ex(ctx, "Refresh", 17, MU_OPT_ALIGNRIGHT) && !request_serverlist)
 			hud_serverlist_init();
+		
+		if(mu_button_ex(ctx, "Local", 16, MU_OPT_ALIGNRIGHT)) {
+			server_c("aos://16777343:32887", NULL);
+		}
 
 		mu_layout_row(ctx, 1, (int[]) {-1}, -1);
 
