@@ -99,7 +99,7 @@ int weapon_block_damage(int gun) {
 
 float weapon_delay(int gun) {
 	switch(gun) {
-		case WEAPON_RIFLE: return 0.5F;
+		case WEAPON_RIFLE: return 0.8F;
 		case WEAPON_SMG: return 0.1F;
 		case WEAPON_SHOTGUN: return 1.0F;
 		default: return 0.0F;
@@ -127,7 +127,7 @@ struct Sound_wav* weapon_sound_reload(int gun) {
 void weapon_spread(struct Player* p, float* d) {
 	float spread = 0.0F;
 	switch(p->weapon) {
-		case WEAPON_RIFLE: spread = 0.006F; break;
+		case WEAPON_RIFLE: spread = 0.00F; break;
 		case WEAPON_SMG: spread = 0.012F; break;
 		case WEAPON_SHOTGUN: spread = 0.024F; break;
 	}
@@ -159,7 +159,7 @@ void weapon_recoil(int gun, double* horiz_recoil, double* vert_recoil) {
 
 int weapon_ammo(int gun) {
 	switch(gun) {
-		case WEAPON_RIFLE: return 10;
+		case WEAPON_RIFLE: return 6;
 		case WEAPON_SMG: return 30;
 		case WEAPON_SHOTGUN: return 6;
 		default: return 0;

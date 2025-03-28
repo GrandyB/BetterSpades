@@ -73,6 +73,15 @@ struct Player players[PLAYERS_MAX];
 #define WEAPON_PRIMARY 1
 #define FALL_DAMAGE_SCALAR 4096
 
+#define AUTOCLIMB_DURATION 0.8F
+#define AUTOCLIMB_SLOWDOWN 0.03F
+#define LANDING_SLOWDOWN 0.7F
+
+#define SPEED_AIRBORNE_MODIFIER 0.1F
+#define SPEED_CROUCH_MODIFIER 0.3F
+#define SPEED_WALKING_SCOPED_MODIFIER 0.5F
+#define SPEED_SPRINT_MODIFIER 1.0F
+
 void player_init() {
 	for(int k = 0; k < PLAYERS_MAX; k++) {
 		player_reset(&players[k]);
@@ -873,13 +882,33 @@ int player_clipbox(float x, float y, float z) {
 	return !map_isair((int)x, 63 - sz, (int)y);
 }
 
+// t goes from 1 → 0
+// dip_depth is how far to dip (positive value, actual dip is negative)
+float overshoot_ease(float t, float dip_ratio, float dip_depth) {
+
+    if (t < dip_ratio) {
+        // Phase 1: Dip
+        float phase_t = t / dip_ratio; // [0,1]
+        return phase_t * dip_depth;
+    } else {
+        // Phase 3: Settle to final value (1.0)
+        float phase_t = (t - dip_ratio) / (1.0f - dip_ratio);
+        return phase_t;
+    }
+}
+
+
+
 void player_reposition(struct Player* p) {
 	p->physics.eye.x = p->pos.x;
 	p->physics.eye.y = p->pos.y;
 	p->physics.eye.z = p->pos.z;
 	float f = p->physics.lastclimb - window_time();
-	if(f > -0.25F && !p->input.keys.crouch) {
-		p->physics.eye.z += (f + 0.25F) / 0.25F;
+	if(f > -AUTOCLIMB_DURATION && !p->input.keys.crouch) {
+		//p->physics.eye.z += (f + AUTOCLIMB_DURATION) / AUTOCLIMB_DURATION;
+		float t = (f + AUTOCLIMB_DURATION) / AUTOCLIMB_DURATION;
+		float z_offset = overshoot_ease(t, 0.5f, 0.2f);
+		p->physics.eye.z += z_offset;
 		if(&players[local_player_id] == p) {
 			last_cy = 63.0F - p->physics.eye.z;
 		}
@@ -1054,13 +1083,13 @@ int player_move(struct Player* p, float fsynctics, int id) {
 
 	f = fsynctics; // player acceleration scalar
 	if(p->physics.airborne)
-		f *= 0.1f;
+		f *= SPEED_AIRBORNE_MODIFIER;
 	else if(p->input.keys.crouch)
-		f *= 0.3f;
+		f *= SPEED_CROUCH_MODIFIER;
 	else if((p->input.buttons.rmb && p->held_item == TOOL_GUN) || p->input.keys.sneak)
-		f *= 0.5f;
+		f *= SPEED_WALKING_SCOPED_MODIFIER;
 	else if(p->input.keys.sprint)
-		f *= 1.3f;
+		f *= SPEED_SPRINT_MODIFIER;
 
 	if((p->input.keys.up || p->input.keys.down) && (p->input.keys.left || p->input.keys.right))
 		f *= SQRT; // if strafe + forward/backwards then limit diagonal velocity
@@ -1068,6 +1097,9 @@ int player_move(struct Player* p, float fsynctics, int id) {
 	float len = sqrt(pow(p->orientation.x, 2.0F) + pow(p->orientation.y, 2.0F));
 	float sx = -p->orientation.y / len;
 	float sy = p->orientation.x / len;
+
+	float modifier = window_time() > p->physics.lastclimb + AUTOCLIMB_DURATION ? 1.0F : AUTOCLIMB_SLOWDOWN;
+	f *= modifier;
 
 	if(p->input.keys.up) {
 		p->physics.velocity.x += p->orientation.x * f;
@@ -1101,8 +1133,8 @@ int player_move(struct Player* p, float fsynctics, int id) {
 
 	if(!p->physics.velocity.z && (f2 > FALL_SLOW_DOWN)) {
 		// slow down on landing
-		p->physics.velocity.x *= 0.5F;
-		p->physics.velocity.y *= 0.5F;
+		p->physics.velocity.x *= LANDING_SLOWDOWN;
+		p->physics.velocity.y *= LANDING_SLOWDOWN;
 
 		// return fall damage
 		if(f2 > FALL_DAMAGE_VELOCITY) {
