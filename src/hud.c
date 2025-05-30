@@ -1983,7 +1983,7 @@ static void hud_serverlist_init() {
 	player_count = 0;
 	server_count = 0;
 	serverlist_is_outdated = 0;
-	request_serverlist = http_get("http://services.buildandshoot.com/serverlist.json", NULL);
+	request_serverlist = http_get("https://checkpoint.aos.coffee/serverlist.json", NULL);
 	request_version = http_get("http://aos.party/bs/version/", NULL);
 	if(!serverlist_news_exists)
 		request_news = http_get("http://aos.party/bs/news/", NULL);

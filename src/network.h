@@ -78,8 +78,7 @@ extern unsigned char network_keys_last;
 extern unsigned char network_buttons_last;
 extern unsigned char network_tool_last;
 
-#define VERSION_075 3
-#define VERSION_076 4
+#define VERSION_010 5
 
 extern void* compressed_chunk_data;
 extern int compressed_chunk_data_size;

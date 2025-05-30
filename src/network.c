@@ -847,28 +847,28 @@ void read_PacketHandshakeInit(void* data, int len) {
 
 void read_PacketVersionGet(void* data, int len) {
 	struct PacketVersionSend ver;
-	ver.client = 'B';
+	ver.client = 'BGS';
 	ver.major = BETTERSPADES_MAJOR;
 	ver.minor = BETTERSPADES_MINOR;
 	ver.revision = BETTERSPADES_PATCH;
 #ifndef OPENGL_ES
 #ifdef OS_WINDOWS
-	char* os = "BetterSpades (Windows) " GIT_COMMIT_HASH;
+	char* os = "BGS (Windows) " GIT_COMMIT_HASH;
 #endif
 #ifdef OS_LINUX
-	char* os = "BetterSpades (Linux) " GIT_COMMIT_HASH;
+	char* os = "BGS (Linux) " GIT_COMMIT_HASH;
 #endif
 #ifdef OS_APPLE
-	char* os = "BetterSpades (Apple) " GIT_COMMIT_HASH;
+	char* os = "BGS (Apple) " GIT_COMMIT_HASH;
 #endif
 #ifdef OS_HAIKU
-	char* os = "BetterSpades (Haiku) " GIT_COMMIT_HASH;
+	char* os = "BGS (Haiku) " GIT_COMMIT_HASH;
 #endif
 #else
 #ifdef USE_TOUCH
-	char* os = "BetterSpades (Android) " GIT_COMMIT_HASH;
+	char* os = "BGS (Android) " GIT_COMMIT_HASH;
 #else
-	char* os = "BetterSpades (Embedded) " GIT_COMMIT_HASH;
+	char* os = "BGS (Embedded) " GIT_COMMIT_HASH;
 #endif
 #endif
 	strcpy(ver.operatingsystem, os);
@@ -1004,10 +1004,7 @@ int network_connect(char* ip, int port) {
 	if(network_connected) {
 		network_disconnect();
 	}
-	if(network_connect_sub(ip, port, VERSION_075)) {
-		return 1;
-	}
-	if(network_connect_sub(ip, port, VERSION_076)) {
+	if(network_connect_sub(ip, port, VERSION_010)) {
 		return 1;
 	}
 	network_connected = 0;
