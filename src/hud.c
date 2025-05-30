@@ -143,7 +143,7 @@ static void hud_ingame_render3D() {
 	matrix_upload_p();
 
 	if(camera_mode == CAMERAMODE_FPS
-	   && (players[local_player_id].input.keys.sprint || players[local_player_id].items_show)) {
+	   && (/*players[local_player_id].input.keys.sprint ||*/ players[local_player_id].items_show)) {
 		players[local_player_id].input.buttons.rmb = 0;
 	}
 
@@ -699,7 +699,7 @@ static void hud_ingame_render(mu_Context* ctx, float scalex, float scalef) {
 			glColor3f(1.0F, 1.0F, 1.0F);
 
 			if(players[local_id].held_item == TOOL_GUN && players[local_id].input.buttons.rmb && players[local_id].alive
-			   && !players[local_id].input.keys.sprint) {
+				) {//&& !players[local_id].input.keys.sprint) {
 				struct texture* zoom;
 				switch(players[local_id].weapon) {
 					case WEAPON_RIFLE: zoom = &texture_zoom_semi; break;
@@ -1303,7 +1303,7 @@ static void hud_ingame_mouseclick(double x, double y, int button, int action, in
 	}
 	if(button == WINDOW_MOUSE_RMB) {
 		if(action == WINDOW_PRESS && players[local_player_id].held_item == TOOL_GUN && !settings.hold_down_sights
-		   && !players[local_player_id].items_show && !players[local_player_id].input.keys.sprint) {
+		   && !players[local_player_id].items_show) {//&& !players[local_player_id].input.keys.sprint) {
 			players[local_player_id].input.buttons.rmb ^= 1;
 		}
 		if(local_player_drag_active && action == WINDOW_RELEASE && players[local_player_id].held_item == TOOL_BLOCK) {
@@ -2176,19 +2176,13 @@ static void hud_serverlist_render(mu_Context* ctx, float scalex, float scaley) {
 
 		int a = ctx->text_width(ctx->style->font, "Refresh", 0) * 1.6F;
 		int b = ctx->text_width(ctx->style->font, "Join", 0) * 2.0F;
-		int c = ctx->text_width(ctx->style->font, "Local", 0) * 2.0F;
-		mu_layout_row(ctx, 4, (int[]) {-a - b - c, -a - b, -c, -1}, 0);
+		mu_layout_row(ctx, 3, (int[]) {-a - b, -a, -1}, 0);
 		if(mu_textbox(ctx, serverlist_input, sizeof(serverlist_input)) & MU_RES_SUBMIT)
 			server_c(serverlist_input, NULL);
 		if(mu_button_ex(ctx, "Join", 16, MU_OPT_ALIGNRIGHT))
 			server_c(serverlist_input, NULL);
-
 		if(mu_button_ex(ctx, "Refresh", 17, MU_OPT_ALIGNRIGHT) && !request_serverlist)
 			hud_serverlist_init();
-		
-		if(mu_button_ex(ctx, "Local", 16, MU_OPT_ALIGNRIGHT)) {
-			server_c("aos://16777343:32887", NULL);
-		}
 
 		mu_layout_row(ctx, 1, (int[]) {-1}, -1);
 

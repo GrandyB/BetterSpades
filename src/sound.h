@@ -32,7 +32,7 @@
 
 #include "player.h"
 
-#define SOUND_SCALE 0.6F
+#define SOUND_SCALE 1.0F
 
 enum sound_space {
 	SOUND_WORLD,

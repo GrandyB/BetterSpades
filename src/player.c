@@ -73,9 +73,9 @@ struct Player players[PLAYERS_MAX];
 #define WEAPON_PRIMARY 1
 #define FALL_DAMAGE_SCALAR 4096
 
-#define AUTOCLIMB_DURATION 0.8F
-#define AUTOCLIMB_SLOWDOWN 0.03F
-#define LANDING_SLOWDOWN 0.7F
+#define AUTOCLIMB_DURATION 0.6F
+#define AUTOCLIMB_SLOWDOWN 0.02F
+#define LANDING_SLOWDOWN 0.85F
 
 #define SPEED_AIRBORNE_MODIFIER 0.1F
 #define SPEED_CROUCH_MODIFIER 0.3F
@@ -178,13 +178,13 @@ float* player_tool_func(const struct Player* p) {
 				}
 			}
 		}
-			// case TOOL_GRENADE:
-			/*if(p->input.buttons.lmb && p!=&players[local_player_id]) {
+		case TOOL_GRENADE:
+			if(p->input.buttons.lmb && p!=&players[local_player_id]) {
 				ret[0] = max(-(window_time()-p->input.buttons.lmb_start)*35.0F,-35.0F);
 				return ret;
 			} else {
 				return ret;
-			}*/
+			}
 	}
 	return ret;
 }
@@ -464,7 +464,8 @@ void player_render_all() {
 }
 
 static float foot_function(const struct Player* p) {
-	float f = (window_time() - p->sound.feet_started_cycle) / (p->input.keys.sprint ? (0.5F / 1.3F) : 0.5F);
+	//float f = (window_time() - p->sound.feet_started_cycle) / (p->input.keys.sprint ? (0.5F / 1.3F) : 0.5F);
+	float f = (window_time() - p->sound.feet_started_cycle) / 0.5F;
 	f = f * 2.0F - 1.0F;
 	return p->sound.feet_cylce ? f : -f;
 }
@@ -618,8 +619,8 @@ void player_collision(const struct Player* p, Ray* ray, struct player_intersecti
 	matrix_pointAt(matrix_model, ox, oy, oz);
 	matrix_rotate(matrix_model, 90.0F, 0.0F, 1.0F, 0.0F);
 
-	if(p->input.keys.sprint && !p->input.keys.crouch)
-		matrix_rotate(matrix_model, 45.0F, 1.0F, 0.0F, 0.0F);
+	//if(p->input.keys.sprint && !p->input.keys.crouch)
+	//	matrix_rotate(matrix_model, 45.0F, 1.0F, 0.0F, 0.0F);
 
 	float* angles = player_tool_func(p);
 	matrix_rotate(matrix_model, angles[0], 1.0F, 0.0F, 0.0F);
@@ -803,8 +804,8 @@ void player_render(struct Player* p, int id) {
 		matrix_translate(matrix_model, f[0], f[1], 0.1F * player_swing_func(time / 1000.0F) * speed + f[2]);
 	}
 
-	if(p->input.keys.sprint && !p->input.keys.crouch)
-		matrix_rotate(matrix_model, 45.0F, 1.0F, 0.0F, 0.0F);
+	//if(p->input.keys.sprint && !p->input.keys.crouch)
+	//	matrix_rotate(matrix_model, 45.0F, 1.0F, 0.0F, 0.0F);
 
 	if(render_fpv && window_time() - p->item_showup < 0.5F)
 		matrix_rotate(matrix_model, 45.0F - (window_time() - p->item_showup) * 90.0F, 1.0F, 0.0F, 0.0F);
@@ -884,18 +885,18 @@ int player_clipbox(float x, float y, float z) {
 
 // t goes from 1 → 0
 // dip_depth is how far to dip (positive value, actual dip is negative)
-float overshoot_ease(float t, float dip_ratio, float dip_depth) {
+// float overshoot_ease(float t, float dip_ratio, float dip_depth) {
 
-    if (t < dip_ratio) {
-        // Phase 1: Dip
-        float phase_t = t / dip_ratio; // [0,1]
-        return phase_t * dip_depth;
-    } else {
-        // Phase 3: Settle to final value (1.0)
-        float phase_t = (t - dip_ratio) / (1.0f - dip_ratio);
-        return phase_t;
-    }
-}
+//     if (t < dip_ratio) {
+//         // Phase 1: Dip
+//         float phase_t = t / dip_ratio; // [0,1]
+//         return phase_t * dip_depth;
+//     } else {
+//         // Phase 3: Settle to final value (1.0)
+//         float phase_t = (t - dip_ratio) / (1.0f - dip_ratio);
+//         return phase_t;
+//     }
+// }
 
 
 
@@ -905,10 +906,10 @@ void player_reposition(struct Player* p) {
 	p->physics.eye.z = p->pos.z;
 	float f = p->physics.lastclimb - window_time();
 	if(f > -AUTOCLIMB_DURATION && !p->input.keys.crouch) {
-		//p->physics.eye.z += (f + AUTOCLIMB_DURATION) / AUTOCLIMB_DURATION;
-		float t = (f + AUTOCLIMB_DURATION) / AUTOCLIMB_DURATION;
-		float z_offset = overshoot_ease(t, 0.5f, 0.2f);
-		p->physics.eye.z += z_offset;
+		p->physics.eye.z += (f + AUTOCLIMB_DURATION) / AUTOCLIMB_DURATION;
+		//float t = (f + AUTOCLIMB_DURATION) / AUTOCLIMB_DURATION;
+		//float z_offset = overshoot_ease(t, 0.5f, 0.2f);
+		//p->physics.eye.z += z_offset;
 		if(&players[local_player_id] == p) {
 			last_cy = 63.0F - p->physics.eye.z;
 		}
@@ -983,7 +984,7 @@ void player_boxclipmove(struct Player* p, float fsynctics) {
 		z -= 0.9f;
 	if(z < -1.36f)
 		p->pos.x = nx;
-	else if(!p->input.keys.crouch && p->orientation.z < 0.5f && !p->input.keys.sprint) {
+	else if(!p->input.keys.crouch && p->orientation.z < 0.5f) {// && !p->input.keys.sprint) {
 		z = 0.35f;
 		while(z >= -2.36f && !player_clipbox(nx + f, p->pos.y - 0.45f, nz + z)
 			  && !player_clipbox(nx + f, p->pos.y + 0.45f, nz + z))
@@ -1006,7 +1007,7 @@ void player_boxclipmove(struct Player* p, float fsynctics) {
 		z -= 0.9f;
 	if(z < -1.36f)
 		p->pos.y = ny;
-	else if(!p->input.keys.crouch && p->orientation.z < 0.5f && !p->input.keys.sprint && !climb) {
+	else if(!p->input.keys.crouch && p->orientation.z < 0.5f && !climb) { // && !p->input.keys.sprint) {
 		z = 0.35f;
 		while(z >= -2.36f && !player_clipbox(p->pos.x - 0.45f, ny + f, nz + z)
 			  && !player_clipbox(p->pos.x + 0.45f, ny + f, nz + z))
@@ -1088,8 +1089,8 @@ int player_move(struct Player* p, float fsynctics, int id) {
 		f *= SPEED_CROUCH_MODIFIER;
 	else if((p->input.buttons.rmb && p->held_item == TOOL_GUN) || p->input.keys.sneak)
 		f *= SPEED_WALKING_SCOPED_MODIFIER;
-	else if(p->input.keys.sprint)
-		f *= SPEED_SPRINT_MODIFIER;
+	//else if(p->input.keys.sprint)
+	//	f *= SPEED_SPRINT_MODIFIER;
 
 	if((p->input.keys.up || p->input.keys.down) && (p->input.keys.left || p->input.keys.right))
 		f *= SQRT; // if strafe + forward/backwards then limit diagonal velocity
@@ -1151,7 +1152,8 @@ int player_move(struct Player* p, float fsynctics, int id) {
 	player_coordsystem_adjust2(p);
 
 	if(p->input.keys.up || p->input.keys.down || p->input.keys.left || p->input.keys.right) {
-		if(window_time() - p->sound.feet_started > (p->input.keys.sprint ? (0.5F / 1.3F) : 0.5F)
+		//if(window_time() - p->sound.feet_started > (p->input.keys.sprint ? (0.5F / 1.3F) : 0.5F)
+		if(window_time() - p->sound.feet_started > 0.5F
 		   && (!p->input.keys.crouch && !p->input.keys.sneak) && !p->physics.airborne
 		   && pow(p->physics.velocity.x, 2.0F) + pow(p->physics.velocity.z, 2.0F) > pow(0.125F, 2.0F)) {
 			struct Sound_wav* footstep = (struct Sound_wav*[]) {
@@ -1167,7 +1169,8 @@ int player_move(struct Player* p, float fsynctics, int id) {
 
 			p->sound.feet_started = window_time();
 		}
-		if(window_time() - p->sound.feet_started_cycle > (p->input.keys.sprint ? (0.5F / 1.3F) : 0.5F)) {
+		//if(window_time() - p->sound.feet_started_cycle > (p->input.keys.sprint ? (0.5F / 1.3F) : 0.5F)) {
+		if(window_time() - p->sound.feet_started_cycle > 0.5F) {
 			p->sound.feet_started_cycle = window_time();
 			p->sound.feet_cylce = !p->sound.feet_cylce;
 		}
