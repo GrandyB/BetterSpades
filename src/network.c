@@ -539,8 +539,17 @@ void read_PacketWeaponInput(void* data, int len) {
 	if(p->player_id < PLAYERS_MAX && p->player_id != local_player_id) {
 		players[p->player_id].input.buttons.lmb = p->primary;
 		players[p->player_id].input.buttons.rmb = p->secondary;
-		if(p->primary)
+		if(p->primary) {
+			struct Player *pl = &players[p->player_id];
+			// Hook into player input to work out if the fuse is being started
+			if (pl->sound.grenade_fuse_started == 0 && pl->held_item == TOOL_GRENADE) {
+				pl->sound.grenade_fuse_started = window_time();
+
+				sound_create(SOUND_WORLD, &sound_grenade_pin,
+				             pl->pos.x, pl->pos.y, pl->pos.z);	
+			}
 			players[p->player_id].input.buttons.lmb_start = window_time();
+		}
 		if(p->secondary)
 			players[p->player_id].input.buttons.rmb_start = window_time();
 	}
@@ -622,7 +631,9 @@ void read_PacketShortPlayerData(void* data, int len) {
 
 void read_PacketGrenade(void* data, int len) {
 	struct PacketGrenade* p = (struct PacketGrenade*)data;
-
+	// Grenade is actually being thrown now, reset fuse timer
+	players[p->player_id].sound.grenade_fuse_started = 0;
+	
 	grenade_add(&(struct Grenade) {
 		.team = players[p->player_id].team,
 		.fuse_length = p->fuse_length,
