@@ -2228,6 +2228,8 @@ static void hud_serverlist_render(mu_Context* ctx, float scalex, float scaley) {
 			for(int k = 0; k < server_count; k++) {
 				if(strstr(serverlist[k].name, serverlist_input) || strstr(serverlist[k].identifier, serverlist_input)
 				   || strstr(serverlist[k].map, serverlist_input) || strstr(serverlist[k].gamemode, serverlist_input)) {
+					
+					if (strcmp(serverlist[k].game_version, MASTER_VER) != 0) continue;
 					if(serverlist[k].current >= 0)
 						sprintf(total_str, "%i/%i", serverlist[k].current, serverlist[k].max);
 					else
@@ -2392,23 +2394,12 @@ static void hud_serverlist_render(mu_Context* ctx, float scalex, float scaley) {
 				ht_setup(pings, sizeof(uint64_t), sizeof(struct ping_entry), 64);
 
 				pthread_mutex_lock(&serverlist_lock);
-				int actual_count = 0;
-				for (int h = 0; h < server_count; h++) {
-					JSON_Object* s = json_array_get_object(servers, h);
-					const char* gamever = json_object_get_string(s, "game_version");
-					if (gamever && strcmp(gamever, MASTER_VER) == 0) actual_count++;
-				}
-				log_info("actual count: %i", actual_count);
-
-				serverlist = realloc(serverlist, actual_count * sizeof(struct serverlist_entry));
+				serverlist = realloc(serverlist, server_count * sizeof(struct serverlist_entry));
 				CHECK_ALLOCATION_ERROR(serverlist)
 
 				player_count = 0;
 				for(int k = 0; k < server_count; k++) {
 					JSON_Object* s = json_array_get_object(servers, k);
-					if (strcmp(json_object_get_string(s, "game_version"), MASTER_VER) != 0) continue;
-					log_info("attempting to show server");
-
 					memset(&serverlist[k], 0, sizeof(struct serverlist_entry));
 
 					serverlist[k].current = (int)json_object_get_number(s, "players_current");
@@ -2434,14 +2425,13 @@ static void hud_serverlist_render(mu_Context* ctx, float scalex, float scaley) {
 					player_count += serverlist[k].current;
 				}
 
-				qsort(serverlist, actual_count, sizeof(struct serverlist_entry), hud_serverlist_sort);
+				qsort(serverlist, server_count, sizeof(struct serverlist_entry), hud_serverlist_sort);
 				pthread_mutex_unlock(&serverlist_lock);
 
 				ping_start(pings, hud_serverlist_pingupdate);
 
 				http_release(request_serverlist);
 				json_value_free(js);
-				server_count = actual_count;
 				request_serverlist = NULL;
 				break;
 			}
