@@ -132,6 +132,7 @@ target_compile_definitions(client PRIVATE BETTERSPADES_MAJOR=${BETTERSPADES_MAJO
 target_compile_definitions(client PRIVATE BETTERSPADES_MINOR=${BETTERSPADES_MINOR})
 target_compile_definitions(client PRIVATE BETTERSPADES_PATCH=${BETTERSPADES_PATCH})
 target_compile_definitions(client PRIVATE BETTERSPADES_VERSION="v${BETTERSPADES_MAJOR}.${BETTERSPADES_MINOR}.${BETTERSPADES_PATCH}")
+target_compile_definitions(client PRIVATE MASTER_VER="${MASTER_VER}")
 
 
 set_target_properties(

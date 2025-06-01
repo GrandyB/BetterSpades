@@ -1983,7 +1983,7 @@ static void hud_serverlist_init() {
 	player_count = 0;
 	server_count = 0;
 	serverlist_is_outdated = 0;
-	request_serverlist = http_get("https://checkpoint.aos.coffee/serverlist.json", NULL);
+	request_serverlist = http_get("http://checkpoint.aos.coffee/serverlist.json", NULL);
 	request_version = http_get("http://aos.party/bs/version/", NULL);
 	if(!serverlist_news_exists)
 		request_news = http_get("http://aos.party/bs/news/", NULL);
@@ -2392,12 +2392,23 @@ static void hud_serverlist_render(mu_Context* ctx, float scalex, float scaley) {
 				ht_setup(pings, sizeof(uint64_t), sizeof(struct ping_entry), 64);
 
 				pthread_mutex_lock(&serverlist_lock);
-				serverlist = realloc(serverlist, server_count * sizeof(struct serverlist_entry));
+				int actual_count = 0;
+				for (int h = 0; h < server_count; h++) {
+					JSON_Object* s = json_array_get_object(servers, h);
+					const char* gamever = json_object_get_string(s, "game_version");
+					if (gamever && strcmp(gamever, MASTER_VER) == 0) actual_count++;
+				}
+				log_info("actual count: %i", actual_count);
+
+				serverlist = realloc(serverlist, actual_count * sizeof(struct serverlist_entry));
 				CHECK_ALLOCATION_ERROR(serverlist)
 
 				player_count = 0;
 				for(int k = 0; k < server_count; k++) {
 					JSON_Object* s = json_array_get_object(servers, k);
+					if (strcmp(json_object_get_string(s, "game_version"), MASTER_VER) != 0) continue;
+					log_info("attempting to show server");
+
 					memset(&serverlist[k], 0, sizeof(struct serverlist_entry));
 
 					serverlist[k].current = (int)json_object_get_number(s, "players_current");
@@ -2412,6 +2423,8 @@ static void hud_serverlist_render(mu_Context* ctx, float scalex, float scaley) {
 							sizeof(serverlist[k].identifier) - 1);
 					strncpy(serverlist[k].country, json_object_get_string(s, "country"),
 							sizeof(serverlist[k].country) - 1);
+					strncpy(serverlist[k].game_version, json_object_get_string(s, "game_version"),
+							sizeof(serverlist[k].game_version) - 1);
 
 					int port;
 					char ip[32];
@@ -2421,13 +2434,14 @@ static void hud_serverlist_render(mu_Context* ctx, float scalex, float scaley) {
 					player_count += serverlist[k].current;
 				}
 
-				qsort(serverlist, server_count, sizeof(struct serverlist_entry), hud_serverlist_sort);
+				qsort(serverlist, actual_count, sizeof(struct serverlist_entry), hud_serverlist_sort);
 				pthread_mutex_unlock(&serverlist_lock);
 
 				ping_start(pings, hud_serverlist_pingupdate);
 
 				http_release(request_serverlist);
 				json_value_free(js);
+				server_count = actual_count;
 				request_serverlist = NULL;
 				break;
 			}

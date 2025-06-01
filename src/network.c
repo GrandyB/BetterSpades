@@ -743,7 +743,8 @@ void read_PacketIntelCapture(void* data, int len) {
 		}
 		sound_create(SOUND_LOCAL, p->winning ? &sound_horn : &sound_pickup, 0.0F, 0.0F, 0.0F);
 		players[p->player_id].score += 10;
-		chat_add(0, 0x0000FF, capture_str);
+		//chat_add(0, 0x0000FF, capture_str);
+		chat_add(1, 0x0000FF, capture_str);
 		if(p->winning) {
 			char* name = NULL;
 
@@ -781,7 +782,8 @@ void read_PacketIntelDrop(void* data, int len) {
 				sprintf(drop_str, "%s has dropped the %s Intel", players[p->player_id].name, gamestate.team_1.name);
 				break;
 		}
-		chat_add(0, 0x0000FF, drop_str);
+		//chat_add(0, 0x0000FF, drop_str);
+		chat_add(1, 0x0000FF, drop_str);
 	}
 }
 
@@ -801,7 +803,8 @@ void read_PacketIntelPickup(void* data, int len) {
 				sprintf(pickup_str, "%s has the %s Intel", players[p->player_id].name, gamestate.team_1.name);
 				break;
 		}
-		chat_add(0, 0x0000FF, pickup_str);
+		//chat_add(0, 0x0000FF, pickup_str);
+		chat_add(1, 0x0000FF, pickup_str);
 		sound_create(SOUND_LOCAL, &sound_pickup, 0.0F, 0.0F, 0.0F);
 	}
 }
@@ -847,7 +850,7 @@ void read_PacketHandshakeInit(void* data, int len) {
 
 void read_PacketVersionGet(void* data, int len) {
 	struct PacketVersionSend ver;
-	ver.client = 'BGS';
+	ver.client = 'G';
 	ver.major = BETTERSPADES_MAJOR;
 	ver.minor = BETTERSPADES_MINOR;
 	ver.revision = BETTERSPADES_PATCH;
