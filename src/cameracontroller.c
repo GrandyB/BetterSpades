@@ -129,10 +129,15 @@ void cameracontroller_fps(float dt) {
 		}
 
 		//players[local_player_id].input.keys.sprint = window_key_down(WINDOW_KEY_SPRINT);
-		players[local_player_id].input.keys.jump = window_key_down(WINDOW_KEY_SPACE);
+		//players[local_player_id].input.keys.jump = window_key_down(WINDOW_KEY_SPACE);
 		players[local_player_id].input.keys.sneak = window_key_down(WINDOW_KEY_SNEAK);
 
-		if(window_key_down(WINDOW_KEY_SPACE) && !players[local_player_id].physics.airborne) {
+		// Prevent holding down space to constantly jump
+		int jump_was_down = players[local_player_id].input.keys.jump;
+		int jump_now_down = window_key_down(WINDOW_KEY_SPACE);
+		players[local_player_id].input.keys.jump = jump_now_down;
+
+		if (jump_now_down && !jump_was_down && !players[local_player_id].physics.airborne) {
 			players[local_player_id].physics.jump = 1;
 		}
 	}
