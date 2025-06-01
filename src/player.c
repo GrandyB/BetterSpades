@@ -73,8 +73,11 @@ struct Player players[PLAYERS_MAX];
 #define WEAPON_PRIMARY 1
 #define FALL_DAMAGE_SCALAR 4096
 
-#define AUTOCLIMB_DURATION 0.4F
-#define AUTOCLIMB_SLOWDOWN 0.02F
+// #define AUTOCLIMB_DURATION 0.4F
+// #define AUTOCLIMB_SLOWDOWN 0.02F
+// #define LANDING_SLOWDOWN 0.85F
+#define AUTOCLIMB_DURATION 0.25F
+#define AUTOCLIMB_SLOWDOWN 0.5F
 #define LANDING_SLOWDOWN 0.85F
 
 #define SPEED_AIRBORNE_MODIFIER 0.1F
@@ -107,14 +110,16 @@ void player_reset(struct Player* p) {
 }
 
 void player_on_held_item_change(struct Player* p) {
-	if(p->input.buttons.lmb)
+	if(p->input.buttons.lmb) {
 		p->input.buttons.lmb_start = window_time() + 0.8F;
+		if (p->held_item == TOOL_GRENADE) sound_create(SOUND_LOCAL, &sound_grenade_pin, 0.0F, 0.0F, 0.0F);
+	}
 	if(p->input.buttons.rmb)
 		p->input.buttons.rmb_start = window_time() + 0.8F;
 
 	p->item_disabled = window_time();
 	p->items_show_start = window_time();
-	p->item_showup = window_time() + 0.3F;
+	p->item_showup = window_time() + 0.15F;
 	p->items_show = 1;
 }
 
@@ -180,7 +185,7 @@ float* player_tool_func(const struct Player* p) {
 		}
 		case TOOL_GRENADE:
 			if(p->input.buttons.lmb && p!=&players[local_player_id]) {
-				ret[0] = max(-(window_time()-p->input.buttons.lmb_start)*35.0F,-35.0F);
+				ret[0] = max(-(window_time()-p->input.buttons.lmb_start)*90.0F,-90.0F);
 				return ret;
 			} else {
 				return ret;
@@ -1021,8 +1026,8 @@ void player_boxclipmove(struct Player* p, float fsynctics) {
 		p->physics.velocity.y = 0;
 
 	if(climb) {
-		p->physics.velocity.x *= 0.5f;
-		p->physics.velocity.y *= 0.5f;
+		p->physics.velocity.x *= AUTOCLIMB_SLOWDOWN;
+		p->physics.velocity.y *= AUTOCLIMB_SLOWDOWN;
 		p->physics.lastclimb = window_time();
 		nz--;
 		m = -1.35f;
@@ -1099,8 +1104,8 @@ int player_move(struct Player* p, float fsynctics, int id) {
 	float sx = -p->orientation.y / len;
 	float sy = p->orientation.x / len;
 
-	float modifier = window_time() > p->physics.lastclimb + AUTOCLIMB_DURATION ? 1.0F : AUTOCLIMB_SLOWDOWN;
-	f *= modifier;
+	//float modifier = window_time() > p->physics.lastclimb + AUTOCLIMB_DURATION ? 1.0F : AUTOCLIMB_SLOWDOWN;
+	//f *= modifier;
 
 	if(p->input.keys.up) {
 		p->physics.velocity.x += p->orientation.x * f;
