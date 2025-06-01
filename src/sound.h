@@ -43,6 +43,7 @@ extern int sound_enabled;
 
 struct Sound_wav {
 	int openal_buffer;
+	float gain;
 	float min, max;
 };
 
@@ -102,7 +103,7 @@ void sound_volume(float vol);
 void sound_create_sticky(struct Sound_wav* w, struct Player* player, int player_id);
 void sound_create(enum sound_space option, struct Sound_wav* w, float x, float y, float z);
 void sound_update(void);
-void sound_load(struct Sound_wav* wav, char* name, float min, float max);
+void sound_load(struct Sound_wav* wav, char* name, float gain, float min, float max);
 void sound_init(void);
 
 #endif

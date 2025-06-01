@@ -114,10 +114,11 @@ static void sound_createEx(enum sound_space option, struct Sound_wav* w, float x
 
 	alGetError();
 	alGenSources(1, &s.openal_handle);
+	alDistanceModel(AL_LINEAR_DISTANCE);
 
 	if(alGetError() == AL_NO_ERROR) {
 		alSourcef(s.openal_handle, AL_PITCH, 1.0F);
-		alSourcef(s.openal_handle, AL_GAIN, 1.0F);
+		alSourcef(s.openal_handle, AL_GAIN, w->gain);
 		alSourcef(s.openal_handle, AL_REFERENCE_DISTANCE, s.local ? 0.0F : w->min * SOUND_SCALE);
 		alSourcef(s.openal_handle, AL_MAX_DISTANCE, s.local ? 2048.0F : w->max * SOUND_SCALE);
 		alSource3f(s.openal_handle, AL_POSITION, s.local ? 0.0F : x * SOUND_SCALE, s.local ? 0.0F : y * SOUND_SCALE,
@@ -213,7 +214,7 @@ void sound_update() {
 extern short* drwav_open_and_read_file_s16(const char* filename, unsigned int* channels, unsigned int* sampleRate,
 										   uint64_t* totalFrameCount);
 
-void sound_load(struct Sound_wav* wav, char* name, float min, float max) {
+void sound_load(struct Sound_wav* wav, char* name, float gain, float min, float max) {
 #ifdef USE_SOUND
 	if(!sound_enabled)
 		return;
@@ -237,7 +238,7 @@ void sound_load(struct Sound_wav* wav, char* name, float min, float max) {
 	alGenBuffers(1, &wav->openal_buffer);
 	alBufferData(wav->openal_buffer, AL_FORMAT_MONO16, (channels > 1) ? audio : samples,
 				 samplecount * sizeof(short) / channels, samplerate);
-
+	wav->gain = gain;
 	wav->min = min;
 	wav->max = max;
 #endif
@@ -266,55 +267,55 @@ void sound_init() {
 
 	sound_volume(settings.volume / 10.0F);
 
-	sound_load(&sound_footstep1, "wav/footstep1.wav", 0.1F, 128.0f);
-	sound_load(&sound_footstep2, "wav/footstep2.wav", 0.1F, 128.0f);
-	sound_load(&sound_footstep3, "wav/footstep3.wav", 0.1F, 128.0f);
-	sound_load(&sound_footstep4, "wav/footstep4.wav", 0.1F, 128.0f);
+	sound_load(&sound_footstep1, "wav/footstep1.wav", 0.6F, 0.1F, 128.0f);
+	sound_load(&sound_footstep2, "wav/footstep2.wav", 0.6F, 0.1F, 128.0f);
+	sound_load(&sound_footstep3, "wav/footstep3.wav", 0.6F, 0.1F, 128.0f);
+	sound_load(&sound_footstep4, "wav/footstep4.wav", 0.6F, 0.1F, 128.0f);
 
-	sound_load(&sound_wade1, "wav/wade1.wav", 0.1F, 128.0f);
-	sound_load(&sound_wade2, "wav/wade2.wav", 0.1F, 128.0f);
-	sound_load(&sound_wade3, "wav/wade3.wav", 0.1F, 128.0f);
-	sound_load(&sound_wade4, "wav/wade4.wav", 0.1F, 128.0f);
+	sound_load(&sound_wade1, "wav/wade1.wav", 0.6F, 0.1F, 128.0f);
+	sound_load(&sound_wade2, "wav/wade2.wav", 0.6F, 0.1F, 128.0f);
+	sound_load(&sound_wade3, "wav/wade3.wav", 0.6F, 0.1F, 128.0f);
+	sound_load(&sound_wade4, "wav/wade4.wav", 0.6F, 0.1F, 128.0f);
 
-	sound_load(&sound_jump, "wav/jump.wav", 0.1F, 128.0f);
-	sound_load(&sound_land, "wav/land.wav", 0.1F, 128.0f);
-	sound_load(&sound_jump_water, "wav/waterjump.wav", 0.1F, 128.0f);
-	sound_load(&sound_land_water, "wav/waterland.wav", 0.1F, 128.0f);
+	sound_load(&sound_jump, "wav/jump.wav", 1.0F, 0.1F, 128.0f);
+	sound_load(&sound_land, "wav/land.wav", 1.0F, 0.1F, 128.0f);
+	sound_load(&sound_jump_water, "wav/waterjump.wav", 1.0F, 0.1F, 128.0f);
+	sound_load(&sound_land_water, "wav/waterland.wav", 1.0F, 0.1F, 128.0f);
 
-	sound_load(&sound_explode, "wav/explode.wav", 0.1F, 128.0f);
-	sound_load(&sound_explode_water, "wav/waterexplode.wav", 0.1F, 128.0f);
-	sound_load(&sound_grenade_bounce, "wav/grenadebounce.wav", 0.1F, 128.0f);
-	sound_load(&sound_grenade_pin, "wav/pin.wav", 0.1F, 128.0f);
+	sound_load(&sound_explode, "wav/explode.wav", 0.7F, 0.1F, 128.0f);
+	sound_load(&sound_explode_water, "wav/waterexplode.wav", 0.7F, 0.1F, 128.0f);
+	sound_load(&sound_grenade_bounce, "wav/grenadebounce.wav", 0.7F, 0.1F, 128.0f);
+	sound_load(&sound_grenade_pin, "wav/pin.wav", 0.7F, 0.1F, 128.0f);
 
-	sound_load(&sound_hurt_fall, "wav/fallhurt.wav", 0.1F, 128.0f);
+	sound_load(&sound_hurt_fall, "wav/fallhurt.wav", 1.0F, 0.1F, 128.0f);
 
-	sound_load(&sound_pickup, "wav/pickup.wav", 0.1F, 1024.0F);
-	sound_load(&sound_horn, "wav/horn.wav", 0.1F, 1024.0F);
+	sound_load(&sound_pickup, "wav/pickup.wav", 1.0F, 0.1F, 1024.0F);
+	sound_load(&sound_horn, "wav/horn.wav", 1.0F, 0.1F, 1024.0F);
 
-	sound_load(&sound_rifle_shoot, "wav/semishoot.wav", 0.1F, 128.0f);
-	sound_load(&sound_rifle_reload, "wav/semireload.wav", 0.1F, 128.0f);
-	sound_load(&sound_smg_shoot, "wav/smgshoot.wav", 0.1F, 128.0f);
-	sound_load(&sound_smg_reload, "wav/smgreload.wav", 0.1F, 128.0f);
-	sound_load(&sound_shotgun_shoot, "wav/shotgunshoot.wav", 0.1F, 128.0f);
-	sound_load(&sound_shotgun_reload, "wav/shotgunreload.wav", 0.1F, 128.0f);
-	sound_load(&sound_shotgun_cock, "wav/cock.wav", 0.1F, 128.0f);
+	sound_load(&sound_rifle_shoot, "wav/semishoot.wav", 1.0F, 0.1F, 128.0f);
+	sound_load(&sound_rifle_reload, "wav/semireload.wav", 1.0F, 0.1F, 128.0f);
+	sound_load(&sound_smg_shoot, "wav/smgshoot.wav", 1.0F, 0.1F, 128.0f);
+	sound_load(&sound_smg_reload, "wav/smgreload.wav", 1.0F, 0.1F, 128.0f);
+	sound_load(&sound_shotgun_shoot, "wav/shotgunshoot.wav", 1.0F, 0.1F, 128.0f);
+	sound_load(&sound_shotgun_reload, "wav/shotgunreload.wav", 1.0F, 0.1F, 128.0f);
+	sound_load(&sound_shotgun_cock, "wav/cock.wav", 1.0F, 0.1F, 128.0f);
 
-	sound_load(&sound_hitground, "wav/hitground.wav", 0.1F, 128.0f);
-	sound_load(&sound_hitplayer, "wav/hitplayer.wav", 0.1F, 128.0f);
-	sound_load(&sound_build, "wav/build.wav", 0.1F, 128.0f);
+	sound_load(&sound_hitground, "wav/hitground.wav", 1.0F, 0.1F, 128.0f);
+	sound_load(&sound_hitplayer, "wav/hitplayer.wav", 1.0F, 0.1F, 128.0f);
+	sound_load(&sound_build, "wav/build.wav", 1.0F, 0.1F, 128.0f);
 
-	sound_load(&sound_spade_woosh, "wav/woosh.wav", 0.1F, 128.0f);
-	sound_load(&sound_spade_whack, "wav/whack.wav", 0.1F, 128.0f);
+	sound_load(&sound_spade_woosh, "wav/woosh.wav", 0.5F, 0.1F, 128.0f);
+	sound_load(&sound_spade_whack, "wav/whack.wav", 1.0F, 0.1F, 128.0f);
 
-	sound_load(&sound_death, "wav/death.wav", 0.1F, 128.0f);
-	sound_load(&sound_beep1, "wav/beep1.wav", 0.1F, 1024.0F);
-	sound_load(&sound_beep2, "wav/beep2.wav", 0.1F, 1024.0F);
-	sound_load(&sound_switch, "wav/switch.wav", 0.1F, 1024.0F);
-	sound_load(&sound_empty, "wav/empty.wav", 0.1F, 1024.0F);
-	sound_load(&sound_intro, "wav/intro.wav", 0.1F, 1024.0F);
+	sound_load(&sound_death, "wav/death.wav", 1.0F, 0.1F, 128.0f);
+	sound_load(&sound_beep1, "wav/beep1.wav", 1.0F, 0.1F, 1024.0F);
+	sound_load(&sound_beep2, "wav/beep2.wav", 1.0F, 0.1F, 1024.0F);
+	sound_load(&sound_switch, "wav/switch.wav", 1.0F, 0.1F, 1024.0F);
+	sound_load(&sound_empty, "wav/empty.wav", 1.0F, 0.1F, 1024.0F);
+	sound_load(&sound_intro, "wav/intro.wav", 1.0F, 0.1F, 1024.0F);
 
-	sound_load(&sound_debris, "wav/debris.wav", 0.1F, 128.0f);
-	sound_load(&sound_bounce, "wav/bounce.wav", 0.1F, 128.0f);
-	sound_load(&sound_impact, "wav/impact.wav", 0.1F, 128.0f);
+	sound_load(&sound_debris, "wav/debris.wav", 1.0F, 0.1F, 128.0f);
+	sound_load(&sound_bounce, "wav/bounce.wav", 1.0F, 0.1F, 128.0f);
+	sound_load(&sound_impact, "wav/impact.wav", 1.0F, 0.1F, 128.0f);
 #endif
 }
