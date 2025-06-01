@@ -560,6 +560,15 @@ void read_PacketSetTool(void* data, int len) {
 	if(p->player_id < PLAYERS_MAX && p->tool < 4) {
 		players[p->player_id].held_item = p->tool;
 	}
+	
+	struct Player *pl = &players[p->player_id];
+	if(pl->held_item == TOOL_GRENADE && pl->input.buttons.lmb) {
+		// Hook into player input to work out if the fuse is being started
+		pl->sound.grenade_fuse_started = window_time();
+
+		sound_create(SOUND_WORLD, &sound_grenade_pin,
+						pl->pos.x, pl->pos.y, pl->pos.z);
+	}
 }
 
 void read_PacketKillAction(void* data, int len) {
