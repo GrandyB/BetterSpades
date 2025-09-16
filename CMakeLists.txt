@@ -3,7 +3,9 @@ project(BetterSpades C)
 
 set(BETTERSPADES_MAJOR 0)
 set(BETTERSPADES_MINOR 1)
-set(BETTERSPADES_PATCH 5)
+set(BETTERSPADES_PATCH 0)
+
+set(MASTER_VER "bgs0.1")
 
 option(ENABLE_TOUCH "Enable touch support including ingame overlay" OFF)
 option(ENABLE_ANDROID_FILE "Use SDL's file functions" OFF)

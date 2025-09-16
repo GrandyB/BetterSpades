@@ -260,7 +260,7 @@ void display() {
 			int* pos = NULL;
 			switch(players[local_id].held_item) {
 				case TOOL_BLOCK:
-					if(!players[local_id].input.keys.sprint && render_fpv) {
+					if(/*!players[local_id].input.keys.sprint && */render_fpv) {
 						if(is_local)
 							pos = camera_terrain_pick(0);
 						else

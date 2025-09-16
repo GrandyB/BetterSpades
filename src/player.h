@@ -159,6 +159,7 @@ extern struct Player {
 		float feet_started, feet_started_cycle;
 		char feet_cylce;
 		float tool_started;
+		float grenade_fuse_started;
 	} sound;
 } players[PLAYERS_MAX];
 // pyspades/pysnip/piqueserver sometimes uses ids that are out of range

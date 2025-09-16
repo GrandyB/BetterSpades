@@ -49,6 +49,7 @@ struct serverlist_entry {
 	int ping;
 	char identifier[32];
 	char country[4];
+	char game_version[32];
 };
 
 extern int screen_current;

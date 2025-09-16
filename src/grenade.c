@@ -38,6 +38,7 @@ void grenade_add(struct Grenade* g) {
 	g->created = window_time();
 
 	entitysys_add(&grenades, g);
+	sound_create(SOUND_WORLD, &sound_spade_woosh, g->pos.x, g->pos.y, g->pos.z);
 }
 
 static int grenade_clipworld(int x, int y, int z) {

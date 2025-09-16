@@ -539,8 +539,17 @@ void read_PacketWeaponInput(void* data, int len) {
 	if(p->player_id < PLAYERS_MAX && p->player_id != local_player_id) {
 		players[p->player_id].input.buttons.lmb = p->primary;
 		players[p->player_id].input.buttons.rmb = p->secondary;
-		if(p->primary)
+		if(p->primary) {
+			struct Player *pl = &players[p->player_id];
+			// Hook into player input to work out if the fuse is being started
+			if (pl->sound.grenade_fuse_started == 0 && pl->held_item == TOOL_GRENADE) {
+				pl->sound.grenade_fuse_started = window_time();
+
+				sound_create(SOUND_WORLD, &sound_grenade_pin,
+				             pl->pos.x, pl->pos.y, pl->pos.z);	
+			}
 			players[p->player_id].input.buttons.lmb_start = window_time();
+		}
 		if(p->secondary)
 			players[p->player_id].input.buttons.rmb_start = window_time();
 	}
@@ -550,6 +559,15 @@ void read_PacketSetTool(void* data, int len) {
 	struct PacketSetTool* p = (struct PacketSetTool*)data;
 	if(p->player_id < PLAYERS_MAX && p->tool < 4) {
 		players[p->player_id].held_item = p->tool;
+	}
+	
+	struct Player *pl = &players[p->player_id];
+	if(pl->held_item == TOOL_GRENADE && pl->input.buttons.lmb) {
+		// Hook into player input to work out if the fuse is being started
+		pl->sound.grenade_fuse_started = window_time();
+
+		sound_create(SOUND_WORLD, &sound_grenade_pin,
+						pl->pos.x, pl->pos.y, pl->pos.z);
 	}
 }
 
@@ -622,7 +640,9 @@ void read_PacketShortPlayerData(void* data, int len) {
 
 void read_PacketGrenade(void* data, int len) {
 	struct PacketGrenade* p = (struct PacketGrenade*)data;
-
+	// Grenade is actually being thrown now, reset fuse timer
+	players[p->player_id].sound.grenade_fuse_started = 0;
+	
 	grenade_add(&(struct Grenade) {
 		.team = players[p->player_id].team,
 		.fuse_length = p->fuse_length,
@@ -732,7 +752,8 @@ void read_PacketIntelCapture(void* data, int len) {
 		}
 		sound_create(SOUND_LOCAL, p->winning ? &sound_horn : &sound_pickup, 0.0F, 0.0F, 0.0F);
 		players[p->player_id].score += 10;
-		chat_add(0, 0x0000FF, capture_str);
+		//chat_add(0, 0x0000FF, capture_str);
+		chat_add(1, 0x0000FF, capture_str);
 		if(p->winning) {
 			char* name = NULL;
 
@@ -770,7 +791,8 @@ void read_PacketIntelDrop(void* data, int len) {
 				sprintf(drop_str, "%s has dropped the %s Intel", players[p->player_id].name, gamestate.team_1.name);
 				break;
 		}
-		chat_add(0, 0x0000FF, drop_str);
+		//chat_add(0, 0x0000FF, drop_str);
+		chat_add(1, 0x0000FF, drop_str);
 	}
 }
 
@@ -790,7 +812,8 @@ void read_PacketIntelPickup(void* data, int len) {
 				sprintf(pickup_str, "%s has the %s Intel", players[p->player_id].name, gamestate.team_1.name);
 				break;
 		}
-		chat_add(0, 0x0000FF, pickup_str);
+		//chat_add(0, 0x0000FF, pickup_str);
+		chat_add(1, 0x0000FF, pickup_str);
 		sound_create(SOUND_LOCAL, &sound_pickup, 0.0F, 0.0F, 0.0F);
 	}
 }
@@ -836,28 +859,28 @@ void read_PacketHandshakeInit(void* data, int len) {
 
 void read_PacketVersionGet(void* data, int len) {
 	struct PacketVersionSend ver;
-	ver.client = 'B';
+	ver.client = 'G';
 	ver.major = BETTERSPADES_MAJOR;
 	ver.minor = BETTERSPADES_MINOR;
 	ver.revision = BETTERSPADES_PATCH;
 #ifndef OPENGL_ES
 #ifdef OS_WINDOWS
-	char* os = "BetterSpades (Windows) " GIT_COMMIT_HASH;
+	char* os = "BGS (Windows) " GIT_COMMIT_HASH;
 #endif
 #ifdef OS_LINUX
-	char* os = "BetterSpades (Linux) " GIT_COMMIT_HASH;
+	char* os = "BGS (Linux) " GIT_COMMIT_HASH;
 #endif
 #ifdef OS_APPLE
-	char* os = "BetterSpades (Apple) " GIT_COMMIT_HASH;
+	char* os = "BGS (Apple) " GIT_COMMIT_HASH;
 #endif
 #ifdef OS_HAIKU
-	char* os = "BetterSpades (Haiku) " GIT_COMMIT_HASH;
+	char* os = "BGS (Haiku) " GIT_COMMIT_HASH;
 #endif
 #else
 #ifdef USE_TOUCH
-	char* os = "BetterSpades (Android) " GIT_COMMIT_HASH;
+	char* os = "BGS (Android) " GIT_COMMIT_HASH;
 #else
-	char* os = "BetterSpades (Embedded) " GIT_COMMIT_HASH;
+	char* os = "BGS (Embedded) " GIT_COMMIT_HASH;
 #endif
 #endif
 	strcpy(ver.operatingsystem, os);
@@ -993,10 +1016,7 @@ int network_connect(char* ip, int port) {
 	if(network_connected) {
 		network_disconnect();
 	}
-	if(network_connect_sub(ip, port, VERSION_075)) {
-		return 1;
-	}
-	if(network_connect_sub(ip, port, VERSION_076)) {
+	if(network_connect_sub(ip, port, VERSION_010)) {
 		return 1;
 	}
 	network_connected = 0;

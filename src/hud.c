@@ -143,7 +143,7 @@ static void hud_ingame_render3D() {
 	matrix_upload_p();
 
 	if(camera_mode == CAMERAMODE_FPS
-	   && (players[local_player_id].input.keys.sprint || players[local_player_id].items_show)) {
+	   && (/*players[local_player_id].input.keys.sprint ||*/ players[local_player_id].items_show)) {
 		players[local_player_id].input.buttons.rmb = 0;
 	}
 
@@ -699,7 +699,7 @@ static void hud_ingame_render(mu_Context* ctx, float scalex, float scalef) {
 			glColor3f(1.0F, 1.0F, 1.0F);
 
 			if(players[local_id].held_item == TOOL_GUN && players[local_id].input.buttons.rmb && players[local_id].alive
-			   && !players[local_id].input.keys.sprint) {
+				) {//&& !players[local_id].input.keys.sprint) {
 				struct texture* zoom;
 				switch(players[local_id].weapon) {
 					case WEAPON_RIFLE: zoom = &texture_zoom_semi; break;
@@ -1303,7 +1303,7 @@ static void hud_ingame_mouseclick(double x, double y, int button, int action, in
 	}
 	if(button == WINDOW_MOUSE_RMB) {
 		if(action == WINDOW_PRESS && players[local_player_id].held_item == TOOL_GUN && !settings.hold_down_sights
-		   && !players[local_player_id].items_show && !players[local_player_id].input.keys.sprint) {
+		   && !players[local_player_id].items_show) {//&& !players[local_player_id].input.keys.sprint) {
 			players[local_player_id].input.buttons.rmb ^= 1;
 		}
 		if(local_player_drag_active && action == WINDOW_RELEASE && players[local_player_id].held_item == TOOL_BLOCK) {
@@ -1983,7 +1983,7 @@ static void hud_serverlist_init() {
 	player_count = 0;
 	server_count = 0;
 	serverlist_is_outdated = 0;
-	request_serverlist = http_get("http://services.buildandshoot.com/serverlist.json", NULL);
+	request_serverlist = http_get("http://checkpoint.aos.coffee/serverlist.json", NULL);
 	request_version = http_get("http://aos.party/bs/version/", NULL);
 	if(!serverlist_news_exists)
 		request_news = http_get("http://aos.party/bs/news/", NULL);
@@ -2181,7 +2181,6 @@ static void hud_serverlist_render(mu_Context* ctx, float scalex, float scaley) {
 			server_c(serverlist_input, NULL);
 		if(mu_button_ex(ctx, "Join", 16, MU_OPT_ALIGNRIGHT))
 			server_c(serverlist_input, NULL);
-
 		if(mu_button_ex(ctx, "Refresh", 17, MU_OPT_ALIGNRIGHT) && !request_serverlist)
 			hud_serverlist_init();
 
@@ -2229,6 +2228,8 @@ static void hud_serverlist_render(mu_Context* ctx, float scalex, float scaley) {
 			for(int k = 0; k < server_count; k++) {
 				if(strstr(serverlist[k].name, serverlist_input) || strstr(serverlist[k].identifier, serverlist_input)
 				   || strstr(serverlist[k].map, serverlist_input) || strstr(serverlist[k].gamemode, serverlist_input)) {
+					
+					if (strcmp(serverlist[k].game_version, MASTER_VER) != 0) continue;
 					if(serverlist[k].current >= 0)
 						sprintf(total_str, "%i/%i", serverlist[k].current, serverlist[k].max);
 					else
@@ -2413,6 +2414,8 @@ static void hud_serverlist_render(mu_Context* ctx, float scalex, float scaley) {
 							sizeof(serverlist[k].identifier) - 1);
 					strncpy(serverlist[k].country, json_object_get_string(s, "country"),
 							sizeof(serverlist[k].country) - 1);
+					strncpy(serverlist[k].game_version, json_object_get_string(s, "game_version"),
+							sizeof(serverlist[k].game_version) - 1);
 
 					int port;
 					char ip[32];

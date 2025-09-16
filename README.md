@@ -24,7 +24,7 @@
 
 **As of right now, you can download the newest stable version from the [releases page](https://github.com/xtreme8000/BetterSpades/releases).**
 
-**You can get [nightly builds here](https://aos.party/jenkins/job/BetterSpades/).**
+**You can get [nightly builds here](https://aos.party/jenkins/job/BetterSpades/).** 
 
 You can either:
 * use the client temporarily by extracting the downloaded zip into a new directory.

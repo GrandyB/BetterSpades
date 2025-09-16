@@ -169,10 +169,10 @@ void window_swapping(int value) {
 void window_title(char* suffix) {
 	if(suffix) {
 		char title[128];
-		snprintf(title, sizeof(title) - 1, "BetterSpades %s - %s", BETTERSPADES_VERSION, suffix);
+		snprintf(title, sizeof(title) - 1, "BetterGrandySpades %s - %s", BETTERSPADES_VERSION, suffix);
 		glfwSetWindowTitle(hud_window->impl, title);
 	} else {
-		glfwSetWindowTitle(hud_window->impl, "BetterSpades " BETTERSPADES_VERSION);
+		glfwSetWindowTitle(hud_window->impl, "BetterGrandySpades " BETTERSPADES_VERSION);
 	}
 }
 
@@ -209,7 +209,7 @@ void window_init() {
 	glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_FALSE);
 
 	hud_window->impl
-		= glfwCreateWindow(settings.window_width, settings.window_height, "BetterSpades " BETTERSPADES_VERSION,
+		= glfwCreateWindow(settings.window_width, settings.window_height, "BetterGrandySpades " BETTERSPADES_VERSION,
 						   settings.fullscreen ? glfwGetPrimaryMonitor() : NULL, NULL);
 	if(!hud_window->impl) {
 		log_fatal("Could not open window");
